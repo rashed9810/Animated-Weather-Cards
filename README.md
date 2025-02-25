@@ -13,7 +13,7 @@ A visually stunning **Animated Weather Cards** project built with **HTML, CSS, a
 
 ## 🖥️ Live Demo
 
-[animatedweathercards.vercel.app/](#)  
+[(https://animatedweathercards.vercel.app/)](#)  
 
 ## 📂 Project Structure
 📦 animated-weather-cards

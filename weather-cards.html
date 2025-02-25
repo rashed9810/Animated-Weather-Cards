@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animated Weather Cards</title>
+    <style>
+        /* General Styles */
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1a1a2e;
+            margin: 0;
+            padding: 20px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            margin-bottom: 30px;
+            text-align: center;
+            color: #e6e6e6;
+        }
+
+        .weather-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            max-width: 1200px;
+        }
+
+        .card {
+            width: 260px;
+            height: 360px;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-10px);
+        }
+
+        .card-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 20px;
+            position: relative;
+            z-index: 2;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+        }
+
+        .card h2 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+
+        .card p {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .temp {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        /* Weather-specific styles */
+        .card.wind {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+        }
+
+        .card.rain {
+            background: linear-gradient(135deg, #3498db, #2c3e50);
+        }
+
+        .card.sun {
+            background: linear-gradient(135deg, #f39c12, #d35400);
+        }
+
+        .card.snow {
+            background: linear-gradient(135deg, #bdc3c7, #2c3e50);
+        }
+
+        /* Wind Animation */
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .wind-line {
+            position: absolute;
+            height: 2px;
+            background-color: rgba(255, 255, 255, 0.5);
+            z-index: 1;
+        }
+
+        /* Rain Animation */
+        .raindrop {
+            position: absolute;
+            width: 2px;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: 1;
+        }
+
+        /* Sun Animation */
+        .sun-circle {
+            position: absolute;
+            width: 80px;
+            height: 80px;
+            background: #ffdd00;
+            border-radius: 50%;
+            box-shadow: 0 0 40px #ffdd00;
+            z-index: 1;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .sun-ray {
+            position: absolute;
+            background: linear-gradient(to bottom, rgba(255, 221, 0, 0.8), rgba(255, 221, 0, 0));
+            z-index: 1;
+        }
+
+        /* Snow Animation */
+        .snowflake {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: white;
+            border-radius: 50%;
+            z-index: 1;
+            opacity: 0.8;
+        }
+
+        /* Control buttons */
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        button {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #2980b9;
+        }
+
+        button.active {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <h1>Animated Weather Cards</h1>
+    
+    <div class="weather-container">
+        <div class="card wind" id="wind-card">
+            <div class="card-content">
+                <h2>Wind</h2>
+                <div class="temp">18°C</div>
+                <p>Strong breeze</p>
+                <p>30 km/h</p>
+            </div>
+        </div>
+        
+        <div class="card rain" id="rain-card">
+            <div class="card-content">
+                <h2>Rain</h2>
+                <div class="temp">12°C</div>
+                <p>Heavy rainfall</p>
+                <p>85% humidity</p>
+            </div>
+        </div>
+        
+        <div class="card sun" id="sun-card">
+            <div class="card-content">
+                <h2>Sunny</h2>
+                <div class="temp">28°C</div>
+                <p>Clear skies</p>
+                <p>UV index: High</p>
+            </div>
+        </div>
+        
+        <div class="card snow" id="snow-card">
+            <div class="card-content">
+                <h2>Snow</h2>
+                <div class="temp">-5°C</div>
+                <p>Light snowfall</p>
+                <p>Accumulation: 3cm</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize all weather animations
+            initWindAnimation();
+            initRainAnimation();
+            initSunAnimation();
+            initSnowAnimation();
+        });
+
+        // Wind Animation
+        function initWindAnimation() {
+            const windCard = document.getElementById('wind-card');
+            
+            // Create clouds
+            for (let i = 0; i < 8; i++) {
+                createCloud(windCard);
+            }
+            
+            // Create wind lines
+            for (let i = 0; i < 15; i++) {
+                createWindLine(windCard);
+            }
+        }
+
+        function createCloud(container) {
+            const cloud = document.createElement('div');
+            cloud.className = 'cloud';
+            
+            const size = Math.random() * 40 + 20;
+            const top = Math.random() * 150 + 20;
+            const duration = Math.random() * 10 + 15;
+            
+            cloud.style.width = `${size}px`;
+            cloud.style.height = `${size / 2}px`;
+            cloud.style.top = `${top}px`;
+            cloud.style.left = '-50px';
+            cloud.style.opacity = Math.random() * 0.5 + 0.2;
+            
+            container.appendChild(cloud);
+            
+            // Animate the cloud
+            animateCloud(cloud, duration);
+        }
+
+        function animateCloud(cloud, duration) {
+            const animation = cloud.animate(
+                [
+                    { left: '-50px' },
+                    { left: 'calc(100% + 50px)' }
+                ],
+                {
+                    duration: duration * 1000,
+                    iterations: Infinity
+                }
+            );
+        }
+
+        function createWindLine(container) {
+            const windLine = document.createElement('div');
+            windLine.className = 'wind-line';
+            
+            const top = Math.random() * 300 + 30;
+            const width = Math.random() * 50 + 20;
+            const duration = Math.random() * 3 + 2;
+            
+            windLine.style.top = `${top}px`;
+            windLine.style.width = `${width}px`;
+            windLine.style.left = '-50px';
+            
+            container.appendChild(windLine);
+            
+            // Animate the wind line
+            animateWindLine(windLine, duration);
+        }
+
+        function animateWindLine(windLine, duration) {
+            const animation = windLine.animate(
+                [
+                    { left: '-50px', opacity: 0 },
+                    { left: '100px', opacity: 0.8 },
+                    { left: 'calc(100% + 50px)', opacity: 0 }
+                ],
+                {
+                    duration: duration * 1000,
+                    iterations: Infinity
+                }
+            );
+        }
+
+        // Rain Animation
+        function initRainAnimation() {
+            const rainCard = document.getElementById('rain-card');
+            
+            // Create raindrops
+            for (let i = 0; i < 60; i++) {
+                createRaindrop(rainCard);
+            }
+        }
+
+        function createRaindrop(container) {
+            const raindrop = document.createElement('div');
+            raindrop.className = 'raindrop';
+            
+            const height = Math.random() * 15 + 10;
+            const left = Math.random() * 100;
+            const delay = Math.random() * 2;
+            const duration = Math.random() * 0.5 + 0.7;
+            
+            raindrop.style.height = `${height}px`;
+            raindrop.style.left = `${left}%`;
+            raindrop.style.top = '-20px';
+            
+            container.appendChild(raindrop);
+            
+            // Animate the raindrop
+            animateRaindrop(raindrop, duration, delay);
+        }
+
+        function animateRaindrop(raindrop, duration, delay) {
+            const animation = raindrop.animate(
+                [
+                    { top: '-20px', opacity: 0 },
+                    { top: '20%', opacity: 1 },
+                    { top: '110%', opacity: 0.7 }
+                ],
+                {
+                    duration: duration * 1000,
+                    delay: delay * 1000,
+                    iterations: Infinity
+                }
+            );
+        }
+
+        // Sun Animation
+        function initSunAnimation() {
+            const sunCard = document.getElementById('sun-card');
+            
+            // Create sun
+            const sunCircle = document.createElement('div');
+            sunCircle.className = 'sun-circle';
+            sunCard.appendChild(sunCircle);
+            
+            // Create sun rays
+            for (let i = 0; i < 8; i++) {
+                createSunRay(sunCard, i * 45);
+            }
+            
+            // Animate sun glow
+            animateSunGlow(sunCircle);
+        }
+
+        function createSunRay(container, angle) {
+            const ray = document.createElement('div');
+            ray.className = 'sun-ray';
+            
+            const length = 60;
+            const width = 20;
+            
+            ray.style.width = `${width}px`;
+            ray.style.height = `${length}px`;
+            ray.style.top = '40px';
+            ray.style.left = '50%';
+            ray.style.transformOrigin = `0 ${length / 2}px`;
+            ray.style.transform = `translateX(-50%) rotate(${angle}deg) translateY(-${length / 2}px)`;
+            
+            container.appendChild(ray);
+            
+            // Animate the ray
+            animateSunRay(ray);
+        }
+
+        function animateSunRay(ray) {
+            const animation = ray.animate(
+                [
+                    { opacity: 0.5, height: '60px' },
+                    { opacity: 1, height: '80px' },
+                    { opacity: 0.5, height: '60px' }
+                ],
+                {
+                    duration: 2000,
+                    iterations: Infinity
+                }
+            );
+        }
+
+        function animateSunGlow(sunCircle) {
+            const animation = sunCircle.animate(
+                [
+                    { boxShadow: '0 0 20px #ffdd00' },
+                    { boxShadow: '0 0 60px #ffdd00' },
+                    { boxShadow: '0 0 20px #ffdd00' }
+                ],
+                {
+                    duration: 3000,
+                    iterations: Infinity
+                }
+            );
+        }
+
+        // Snow Animation
+        function initSnowAnimation() {
+            const snowCard = document.getElementById('snow-card');
+            
+            // Create snowflakes
+            for (let i = 0; i < 40; i++) {
+                createSnowflake(snowCard);
+            }
+        }
+
+        function createSnowflake(container) {
+            const snowflake = document.createElement('div');
+            snowflake.className = 'snowflake';
+            
+            const size = Math.random() * 6 + 4;
+            const left = Math.random() * 100;
+            const delay = Math.random() * 5;
+            const duration = Math.random() * 3 + 5;
+            
+            snowflake.style.width = `${size}px`;
+            snowflake.style.height = `${size}px`;
+            snowflake.style.left = `${left}%`;
+            snowflake.style.top = '-10px';
+            
+            container.appendChild(snowflake);
+            
+            // Animate the snowflake
+            animateSnowflake(snowflake, duration, delay);
+        }
+
+        function animateSnowflake(snowflake, duration, delay) {
+            const swayAmplitude = Math.random() * 50 + 20;
+            const startLeft = parseFloat(snowflake.style.left);
+            
+            const animation = snowflake.animate(
+                [
+                    { 
+                        top: '-10px', 
+                        left: `${startLeft}%`,
+                        opacity: 0.3
+                    },
+                    { 
+                        top: '30%', 
+                        left: `${startLeft - swayAmplitude/100}%`,
+                        opacity: 1
+                    },
+                    { 
+                        top: '60%', 
+                        left: `${startLeft + swayAmplitude/100}%`,
+                        opacity: 0.8
+                    },
+                    { 
+                        top: '110%', 
+                        left: `${startLeft - swayAmplitude/200}%`,
+                        opacity: 0.5
+                    }
+                ],
+                {
+                    duration: duration * 1000,
+                    delay: delay * 1000,
+                    iterations: Infinity,
+                    easing: 'ease-in-out'
+                }
+            );
+        }
+    </script>
+</body>
+</html>
